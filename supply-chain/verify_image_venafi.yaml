@@ -3,19 +3,7 @@ kind: ClusterPolicy
 metadata:
   name: check-image-venafi-key
   annotations:
-    pod-policies.kyverno.io/autogen-controllers: none
     policies.kyverno.io/category: Image Verification
-    policies.kyverno.io/severity: medium
-    policies.kyverno.io/scored: "yes"
-    policies.kyverno.io/description: Using the Cosign project, OCI images may be
-      signed to ensure supply chain security is maintained. Those signatures can
-      be verified before pulling into a cluster. This policy checks the
-      signature of an image repo called ghcr.io/kyverno/test-verify-image to
-      ensure it has been signed by verifying its signature against the provided
-      public key. This policy serves as an illustration for how to configure a
-      similar rule and will require replacing with your image(s) and keys.
-    venafipkcs11cert84e61ec80: "{ venafi: demoaccount1, label:
-      Sample-Development-Environment, type: certificate }"
 spec:
   validationFailureAction: enforce
   background: false
@@ -25,6 +13,7 @@ spec:
     - name: check-image-venafi-key
       context:
         - name: venaficonfigmap
+#Below configmap values below should match the ones in CR yaml imagekey.yaml. More info: https://github.com/nirmata/kyverno-charts/tree/main/charts/venafi-adapter#test-a-sample-policy
           configMap:
             name: venaficm
             namespace: nirmata-venafi-adapter
@@ -35,8 +24,10 @@ spec:
       verifyImages:
         - imageReferences:
             - docker.io/*
+#Update the above registry reference to the appropriate registry
           attestors:
             - count: 1
               entries:
                 - certificates:
                     certChain: "{{venaficonfigmap.data.key1}}"
+#Above configmap key should match the ones in CR yaml imagekey.yaml. More info: https://github.com/nirmata/kyverno-charts/tree/main/charts/venafi-adapter#test-a-sample-policy
